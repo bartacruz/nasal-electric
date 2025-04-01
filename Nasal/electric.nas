@@ -2,13 +2,13 @@ systems ={};
 
 var charge_battery_cb= func(node) {
     var s = split("/",node.getPath());
-    var bn = s[-2];
+    var battery_name = s[-2];
     var charge_percent = node.getDoubleValue();
     if (charge_percent < 0 or charge_percent > 1) return;
     foreach (var system; values(systems)) {
         if (find(system.path,node.getPath()) < 0) continue;
         foreach(var source;system.sources){
-            if (source.is_instance(Battery) and source.name == bn){
+            if (source.is_instance(Battery) and source.name == battery_name){
                 printf("setting charge of %s from %f to %f", source.id(),source.charge_percent,charge_percent);
                 source.set_charge_percent(charge_percent);
             }
@@ -128,8 +128,7 @@ var Class= {
         me.voltage=0;
         me.current=0;
     },
-    publish: func(obj=nil) {
-        obj = obj or me;
+    publish: func() {
         me.set_prop("voltage",me.voltage);
         me.set_prop("current",me.current);
     },
@@ -139,7 +138,7 @@ var Class= {
 };
 
 ##
-# Helper functions
+# Helper static functions
 #
 Class.ids = func(v) {
     var ret = [];
@@ -715,6 +714,9 @@ var System = {
         } else {
             me.connect(source,instrument);
         }
+    },
+    add_annunciator: func(source, name) {
+        me.connect(source,Annunciator.new(name));
     },
     
     # UpdateLoop methods
